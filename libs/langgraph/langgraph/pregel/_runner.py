@@ -75,6 +75,7 @@ SKIP_RERAISE_SET: weakref.WeakSet[concurrent.futures.Future | asyncio.Future] = 
 
 class FuturesDict(Generic[F, E], dict[F, PregelExecutableTask | None]):
     event: E
+    all_done: E
     callback: weakref.ref[Callable[[PregelExecutableTask, BaseException | None], None]]
     # Stop condition is injected by PregelRunner instead of hard-coded here.
     # This lets the runner treat graph-error-handled exceptions as non-fatal
@@ -97,6 +98,8 @@ class FuturesDict(Generic[F, E], dict[F, PregelExecutableTask | None]):
         super().__init__()
         self.lock = threading.Lock()
         self.event = event
+        self.all_done = type(event)()
+        self.all_done.set()
         self.callback = callback
         self.should_stop = should_stop
         self.counter = 0
@@ -111,6 +114,7 @@ class FuturesDict(Generic[F, E], dict[F, PregelExecutableTask | None]):
         if value is not None:
             with self.lock:
                 self.event.clear()
+                self.all_done.clear()
                 self.counter += 1
             key.add_done_callback(partial(self.on_done, value))
 
@@ -127,6 +131,8 @@ class FuturesDict(Generic[F, E], dict[F, PregelExecutableTask | None]):
             with self.lock:
                 self.done.add(fut)
                 self.counter -= 1
+                if self.counter == 0:
+                    self.all_done.set()
                 # Wake waiter when all tracked futures are done, or when runner-level
                 # stop condition is met (for example, a non-handled fatal exception).
                 if self.counter == 0 or self.should_stop(self.done):
@@ -168,6 +174,28 @@ class PregelRunner:
         # These ids are consulted by stop/panic checks to avoid re-raising handled
         # exceptions via the normal fatal path in the same run.
         self._handled_exception_ids: set[int] = set()
+        self._sync_futures: list[
+            FuturesDict[concurrent.futures.Future, threading.Event]
+        ] = []
+        self._async_futures: list[FuturesDict[asyncio.Future, asyncio.Event]] = []
+
+    def finish(self) -> None:
+        """Wait for node commits before the loop flushes and closes its executor."""
+        for futures in self._sync_futures:
+            futures.all_done.wait()
+
+    async def afinish(self) -> None:
+        """Cancel remaining async work and wait for its commit callbacks."""
+        for futures in self._async_futures:
+            for future, task in list(futures.items()):
+                if (
+                    task is not None
+                    and not future.done()
+                    and not (isinstance(future, asyncio.Task) and future.cancelling())
+                ):
+                    future.cancel()
+        for futures in self._async_futures:
+            await futures.all_done.wait()
 
     def _should_route_to_error_handler(self, task: PregelExecutableTask) -> bool:
         if task.name in self.error_handler_nodes:
@@ -196,6 +224,10 @@ class PregelRunner:
             ),
             future_type=concurrent.futures.Future,
         )
+        self._sync_futures = [
+            pending for pending in self._sync_futures if not pending.all_done.is_set()
+        ]
+        self._sync_futures.append(futures)
         # give control back to the caller
         yield
         # fast path if single task with no timeout and no waiter
@@ -385,6 +417,10 @@ class PregelRunner:
             ),
             future_type=asyncio.Future,
         )
+        self._async_futures = [
+            pending for pending in self._async_futures if not pending.all_done.is_set()
+        ]
+        self._async_futures.append(futures)
         # give control back to the caller
         yield
         # fast path if single task with no waiter and no timeout

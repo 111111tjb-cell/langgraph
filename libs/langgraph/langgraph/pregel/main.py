@@ -3020,6 +3020,9 @@ class Pregel(
                     node_error_handler_map=self.node_error_handler_map,
                     schedule_error_handler=loop.schedule_error_handler,
                 )
+                # Future completion can precede commit callbacks. Settle them
+                # while checkpoint submissions are still accepted by the executor.
+                loop.stack.callback(runner.finish)
                 # enable subgraph streaming
                 if subgraphs:
                     loop.config[CONF][CONFIG_KEY_STREAM] = loop.stream
@@ -3473,6 +3476,7 @@ class Pregel(
                     node_error_handler_map=self.node_error_handler_map,
                     aschedule_error_handler=loop.aschedule_error_handler,
                 )
+                loop.stack.push_async_callback(runner.afinish)
                 # enable subgraph streaming
                 if subgraphs:
                     loop.config[CONF][CONFIG_KEY_STREAM] = StreamProtocol(
