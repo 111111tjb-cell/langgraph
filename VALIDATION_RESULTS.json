@@ -1,0 +1,59 @@
+{
+  "date": "2026-10-24",
+  "upstream_base": "4c52e129eb1ab69a3da58b799f67929f77d81149",
+  "environment": "Windows, Python 3.12.4, pip editable installs; not fully locked",
+  "regressions": {
+    "tests": 52,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "failed_cases": []
+  },
+  "full_non_docker_suite": {
+    "tests": 2862,
+    "failures": 3,
+    "errors": 0,
+    "skipped": 43,
+    "failed_cases": [
+      "tests.test_pregel_async::test_imp_nested[memory-exit]",
+      "tests.test_pregel_async::test_async_streaming_with_functional_api",
+      "tests.test_time_travel_async::test_replay_creates_branch_preserving_old_checkpoints[sqlite_aio]"
+    ]
+  },
+  "upstream_replay_control_20_repeats": {
+    "tests": 40,
+    "failures": 15,
+    "errors": 0,
+    "skipped": 0,
+    "failed_cases": [
+      "tests.test_time_travel_async::test_replay_creates_branch_preserving_old_checkpoints[memory-1-20]",
+      "tests.test_time_travel_async::test_replay_creates_branch_preserving_old_checkpoints[memory-6-20]",
+      "tests.test_time_travel_async::test_replay_creates_branch_preserving_old_checkpoints[memory-8-20]",
+      "tests.test_time_travel_async::test_replay_creates_branch_preserving_old_checkpoints[memory-9-20]",
+      "tests.test_time_travel_async::test_replay_creates_branch_preserving_old_checkpoints[memory-14-20]",
+      "tests.test_time_travel_async::test_replay_creates_branch_preserving_old_checkpoints[sqlite_aio-2-20]",
+      "tests.test_time_travel_async::test_replay_creates_branch_preserving_old_checkpoints[sqlite_aio-3-20]",
+      "tests.test_time_travel_async::test_replay_creates_branch_preserving_old_checkpoints[sqlite_aio-6-20]",
+      "tests.test_time_travel_async::test_replay_creates_branch_preserving_old_checkpoints[sqlite_aio-10-20]",
+      "tests.test_time_travel_async::test_replay_creates_branch_preserving_old_checkpoints[sqlite_aio-12-20]",
+      "tests.test_time_travel_async::test_replay_creates_branch_preserving_old_checkpoints[sqlite_aio-13-20]",
+      "tests.test_time_travel_async::test_replay_creates_branch_preserving_old_checkpoints[sqlite_aio-14-20]",
+      "tests.test_time_travel_async::test_replay_creates_branch_preserving_old_checkpoints[sqlite_aio-15-20]",
+      "tests.test_time_travel_async::test_replay_creates_branch_preserving_old_checkpoints[sqlite_aio-17-20]",
+      "tests.test_time_travel_async::test_replay_creates_branch_preserving_old_checkpoints[sqlite_aio-19-20]"
+    ]
+  },
+  "format_lint_typecheck": "passed",
+  "process_restart_demo": "passed",
+  "limitations": [
+    "Docker-backed savers not tested",
+    "Linux/macOS not tested"
+  ],
+  "sha256": {
+    "libs/langgraph/langgraph/pregel/_runner.py": "23b0eb49a9bb31735e6642635e26460502b0b14338414c5b2d5b11c1ec3509c6",
+    "libs/langgraph/langgraph/pregel/main.py": "5391eedd8be2df27a9f7854b656e76c6e7f00719e5ee2d7ad2a98fea0f45463e",
+    "libs/langgraph/tests/test_late_pending_writes.py": "261ca4263d4b0f7bb5d09ca426d5575ac1f082a9d715f042214586999dbaf004",
+    "examples/reproduce_late_writes.py": "9f4a1b5e63565864219f6b1569fc8b6584be61d6b634f542d8740d6ea9c96b4f"
+  },
+  "sha256_encoding": "Exact Git blob bytes with LF line endings; local Windows test execution may use CRLF."
+}

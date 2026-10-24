@@ -1,3 +1,9 @@
+> **Fork improvement: preserve completed work after parallel failure.**
+> This fork fixes late sibling writes being lost during checkpoint shutdown,
+> including `durability="exit"`. It includes 52 regression cases and a SQLite
+> demo that resumes in a separate Python process without rerunning completed work.
+> See [the fix, reproduction, and validation results](FORK_NOTES.md).
+
 <div align="center">
   <a href="https://www.langchain.com/langgraph">
     <picture>
